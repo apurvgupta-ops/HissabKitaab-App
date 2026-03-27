@@ -9,6 +9,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { colors } from '../theme';
 import { fontSize, fontWeight } from '../theme/typography';
 
@@ -21,6 +22,7 @@ import AutomationAdapterScreen from '../features/automation/AutomationAdapterScr
 
 // Auth
 import { getToken } from '../api/auth';
+import { TOKEN_KEY, REFRESH_KEY } from '../api/client';
 import type { ReceiptUploadResponse } from '../api/uploads';
 
 // -- Type definitions for navigation params --
@@ -41,7 +43,8 @@ function CaptureStackNavigator() {
         headerTintColor: colors.textPrimary,
         headerTitleStyle: { fontWeight: fontWeight.semibold },
         contentStyle: { backgroundColor: colors.background },
-      }}>
+      }}
+    >
       <CaptureStack.Screen
         name="CaptureHome"
         component={CaptureScreen}
@@ -87,7 +90,8 @@ function MainTabs() {
         headerTitleStyle: {
           fontWeight: fontWeight.semibold,
         },
-      }}>
+      }}
+    >
       <Tab.Screen
         name="Capture"
         component={CaptureStackNavigator}
@@ -127,6 +131,30 @@ export default function AppNavigator() {
 
   useEffect(() => {
     checkAuth();
+  }, []);
+
+  useEffect(() => {
+    if (!__DEV__) {
+      return;
+    }
+
+    (global as any).debugAuth = async () => {
+      const accessToken = await AsyncStorage.getItem(TOKEN_KEY);
+      const refreshToken = await AsyncStorage.getItem(REFRESH_KEY);
+      const user = await AsyncStorage.getItem('@hissabkitaab/user');
+
+      console.log('Auth Debug', {
+        hasAccessToken: !!accessToken,
+        hasRefreshToken: !!refreshToken,
+        accessTokenPreview: accessToken
+          ? `${accessToken.slice(0, 12)}...`
+          : null,
+        refreshTokenPreview: refreshToken
+          ? `${refreshToken.slice(0, 12)}...`
+          : null,
+        user,
+      });
+    };
   }, []);
 
   const checkAuth = async () => {

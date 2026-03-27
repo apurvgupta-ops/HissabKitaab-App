@@ -41,7 +41,6 @@ export async function uploadReceipt(
   mimeType: string = 'image/jpeg',
 ): Promise<ReceiptUploadResponse> {
   const formData = new FormData();
-
   formData.append('file', {
     uri: Platform.OS === 'android' ? imageUri : imageUri.replace('file://', ''),
     type: mimeType,
@@ -52,9 +51,6 @@ export async function uploadReceipt(
     success: boolean;
     data: ReceiptUploadResponse;
   }>('/uploads/receipt', formData, {
-    headers: {
-      'Content-Type': 'multipart/form-data',
-    },
     timeout: 60000, // receipts can take longer with OCR
   });
 

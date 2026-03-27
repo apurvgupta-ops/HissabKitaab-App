@@ -13,9 +13,16 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { colors } from '../theme';
-import { fontSize, fontWeight, spacing, borderRadius } from '../theme/typography';
+import {
+  fontSize,
+  fontWeight,
+  spacing,
+  borderRadius,
+} from '../theme/typography';
 import { Button } from '../components';
 import { login } from '../api/auth';
+import { BASE_URL } from '../api/client';
+// import { debugAuth } from '../';
 
 interface LoginScreenProps {
   onLoginSuccess: () => void;
@@ -35,12 +42,22 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
 
     setLoading(true);
     try {
-      await login(email.trim(), password);
+      const response = await login(email.trim(), password);
+      console.log({ response });
       onLoginSuccess();
     } catch (err: any) {
+      const serverMessage =
+        err?.response?.data?.error?.message ||
+        err?.response?.data?.message ||
+        err?.message;
+
+      const isNetworkError = !err?.response;
+
       Alert.alert(
         'Login Failed',
-        err?.response?.data?.error?.message || 'Invalid credentials',
+        isNetworkError
+          ? `Cannot reach backend at ${BASE_URL}. Check server is running and URL is correct for your device/emulator.`
+          : serverMessage || 'Invalid credentials',
       );
     } finally {
       setLoading(false);
@@ -50,12 +67,17 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
   return (
     <KeyboardAvoidingView
       style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
       <View style={styles.content}>
         {/* Logo Area */}
         <View style={styles.logoArea}>
           <View style={styles.logoCircle}>
-            <Icon name="account-balance-wallet" size={40} color={colors.primary} />
+            <Icon
+              name="account-balance-wallet"
+              size={40}
+              color={colors.primary}
+            />
           </View>
           <Text style={styles.appName}>HissabKitaab</Text>
           <Text style={styles.tagline}>Smart expense tracking, simplified</Text>
@@ -66,7 +88,12 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Email</Text>
             <View style={styles.inputWrapper}>
-              <Icon name="mail-outline" size={20} color={colors.textMuted} style={styles.inputIcon} />
+              <Icon
+                name="mail-outline"
+                size={20}
+                color={colors.textMuted}
+                style={styles.inputIcon}
+              />
               <TextInput
                 style={styles.input}
                 value={email}
@@ -83,7 +110,12 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Password</Text>
             <View style={styles.inputWrapper}>
-              <Icon name="lock-outline" size={20} color={colors.textMuted} style={styles.inputIcon} />
+              <Icon
+                name="lock-outline"
+                size={20}
+                color={colors.textMuted}
+                style={styles.inputIcon}
+              />
               <TextInput
                 style={[styles.input, { flex: 1 }]}
                 value={password}

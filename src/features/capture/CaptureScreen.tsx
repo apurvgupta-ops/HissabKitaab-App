@@ -12,13 +12,23 @@ import {
   Alert,
   ScrollView,
 } from 'react-native';
-import { launchCamera, launchImageLibrary, type ImagePickerResponse } from 'react-native-image-picker';
+import {
+  launchCamera,
+  launchImageLibrary,
+  type ImagePickerResponse,
+} from 'react-native-image-picker';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { colors } from '../../theme';
-import { fontSize, fontWeight, spacing, borderRadius } from '../../theme/typography';
+import {
+  fontSize,
+  fontWeight,
+  spacing,
+  borderRadius,
+} from '../../theme/typography';
 import { Button } from '../../components';
+import { BASE_URL } from '../../api/client';
 import { uploadReceipt } from '../../api/uploads';
 import type { CaptureStackParamList } from '../../navigation/AppNavigator';
 
@@ -32,11 +42,15 @@ interface SelectedImage {
 
 export default function CaptureScreen() {
   const navigation = useNavigation<Nav>();
-  const [selectedImage, setSelectedImage] = useState<SelectedImage | null>(null);
+  const [selectedImage, setSelectedImage] = useState<SelectedImage | null>(
+    null,
+  );
   const [uploading, setUploading] = useState(false);
 
   const handleResponse = (response: ImagePickerResponse) => {
-    if (response.didCancel) {return;}
+    if (response.didCancel) {
+      return;
+    }
     if (response.errorCode) {
       Alert.alert('Error', response.errorMessage || 'Failed to pick image');
       return;
@@ -66,7 +80,9 @@ export default function CaptureScreen() {
   };
 
   const handleUpload = async () => {
-    if (!selectedImage) {return;}
+    if (!selectedImage) {
+      return;
+    }
     setUploading(true);
     try {
       const result = await uploadReceipt(
@@ -74,11 +90,21 @@ export default function CaptureScreen() {
         selectedImage.fileName,
         selectedImage.type,
       );
+
+      console.log({ result });
       navigation.navigate('ReceiptResult', { result });
     } catch (err: any) {
+      const serverMessage =
+        err?.response?.data?.error?.message ||
+        err?.response?.data?.message ||
+        err?.message;
+      const isNetworkError = !err?.response;
+      console.log({ err });
       Alert.alert(
         'Upload Failed',
-        err?.response?.data?.error?.message || err.message || 'Something went wrong',
+        isNetworkError
+          ? `Cannot reach backend at ${BASE_URL}. Check server URL/port and upload route.`
+          : serverMessage || 'Something went wrong',
       );
     } finally {
       setUploading(false);
@@ -106,7 +132,8 @@ export default function CaptureScreen() {
             />
             <TouchableOpacity
               style={styles.clearButton}
-              onPress={() => setSelectedImage(null)}>
+              onPress={() => setSelectedImage(null)}
+            >
               <Icon name="close" size={20} color={colors.white} />
             </TouchableOpacity>
           </View>
@@ -125,15 +152,25 @@ export default function CaptureScreen() {
 
       {/* Action Buttons */}
       <View style={styles.actions}>
-        <TouchableOpacity style={styles.captureButton} onPress={openCamera} activeOpacity={0.8}>
+        <TouchableOpacity
+          style={styles.captureButton}
+          onPress={openCamera}
+          activeOpacity={0.8}
+        >
           <View style={styles.captureIconWrap}>
             <Icon name="photo-camera" size={28} color={colors.white} />
           </View>
           <Text style={styles.captureLabel}>Camera</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.captureButton} onPress={openGallery} activeOpacity={0.8}>
-          <View style={[styles.captureIconWrap, { backgroundColor: colors.accent }]}>
+        <TouchableOpacity
+          style={styles.captureButton}
+          onPress={openGallery}
+          activeOpacity={0.8}
+        >
+          <View
+            style={[styles.captureIconWrap, { backgroundColor: colors.accent }]}
+          >
             <Icon name="photo-library" size={28} color={colors.white} />
           </View>
           <Text style={styles.captureLabel}>Gallery</Text>
@@ -148,7 +185,11 @@ export default function CaptureScreen() {
             onPress={handleUpload}
             loading={uploading}
             disabled={uploading}
-            icon={!uploading ? <Icon name="cloud-upload" size={20} color={colors.white} /> : undefined}
+            icon={
+              !uploading ? (
+                <Icon name="cloud-upload" size={20} color={colors.white} />
+              ) : undefined
+            }
           />
         </View>
       )}

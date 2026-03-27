@@ -3,15 +3,16 @@
  */
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Platform } from 'react-native';
 
 const TOKEN_KEY = '@hissabkitaab/accessToken';
 const REFRESH_KEY = '@hissabkitaab/refreshToken';
 
-// Change this to your backend URL
-// Android emulator: http://10.0.2.2:4000
-// Physical device / iOS sim: your LAN IP e.g. http://192.168.x.x:4000
-// export const BASE_URL = 'http://10.0.2.2:4000';
-export const BASE_URL = 'http://localhost:3000';
+// Change this to your backend URL.
+// Android emulator cannot use localhost; it must use 10.0.2.2.
+// Physical device must use your machine's LAN IP (e.g. http://192.168.x.x:3000).
+export const BASE_URL =
+  Platform.OS === 'android' ? 'http://10.0.2.2:3000' : 'http://localhost:3000';
 
 const client = axios.create({
   baseURL: `${BASE_URL}/api/v1`,

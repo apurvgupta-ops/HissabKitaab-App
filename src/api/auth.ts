@@ -31,11 +31,12 @@ export async function login(
   email: string,
   password: string,
 ): Promise<AuthResponse> {
+  console.log('inside login');
   const { data } = await client.post<{ success: boolean; data: AuthResponse }>(
     '/auth/login',
     { email, password },
   );
-
+  console.log({ data });
   const { tokens, user } = data.data;
   await AsyncStorage.setItem(TOKEN_KEY, tokens.accessToken);
   await AsyncStorage.setItem(REFRESH_KEY, tokens.refreshToken);
@@ -65,7 +66,9 @@ export async function getToken(): Promise<string | null> {
  */
 export async function getStoredUser(): Promise<AuthUser | null> {
   const raw = await AsyncStorage.getItem('@hissabkitaab/user');
-  if (!raw) {return null;}
+  if (!raw) {
+    return null;
+  }
   try {
     return JSON.parse(raw) as AuthUser;
   } catch {
